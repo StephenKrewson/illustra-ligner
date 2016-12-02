@@ -13,9 +13,10 @@ OVERLAP_FRACTION = 0.3
 
 class BoundingBox:
     def overlaps(self, abbox):
-        x_condition = self.x1 < abbox.x0 or abbox.x1 < self.x0
-        y_condition = self.y1 < abbox.y0 or abbox.y1 < self.y0
-        if x_condition and y_condition:
+        diff = LOW_BOUND / 3
+        x_condition = self.x1 < abbox.x0 - diff or abbox.x1 < self.x0 - diff
+        y_condition = self.y1 < abbox.y0 - diff or abbox.y1 < self.y0 - diff
+        if x_condition or y_condition:
             return False
         return True
 
@@ -29,9 +30,11 @@ class BoundingBox:
         return img[self.y0:self.y1, self.x0:self.x1]
 
     def meets_low_bound(self, low_bound):
-        x_condition = self.x1 - self.x0 > low_bound
-        y_condition = self.y1 - self.y0 > low_bound
-        return x_condition and y_condition
+        x_high = self.x1 - self.x0 > low_bound * 1.5
+        y_high = self.y1 - self.y0 > low_bound * 1.5
+        x_low = self.x1 - self.x0 > low_bound / 4
+        y_low = self.y1 - self.y0 > low_bound / 4
+        return (x_high or y_high) and (x_low and y_low)
 
     def expand_by_bbox(self, abbox):
         self.x0 = min(self.x0, abbox.x0)
@@ -63,22 +66,38 @@ def combine_rectangles(rectangles):
             rectangles.pop(index)
 
 
+# def remove_text(rectangles, img):
+#     will_remove = []
+#     for i, bbox in enumerate(rectangles):
+#         # filter out rectangles that are text
+#         small_img = Image.fromarray(bbox.slice_image(img))
+#         txt = pytesseract.image_to_string(small_img)
+#         if len(txt) > 5 and txt.count('\\') < 5:
+#             will_remove.append(i)
+#     for index in sorted(list(set(will_remove)), reverse=True):
+#         rectangles.pop(index)
+
+
 def bounding_boxes_for_image(image_path):
     img = cv2.imread(image_path, 0)
-    ret, thresh = cv2.threshold(img, 127, 255, 0)
-    contours, hierarchy = cv2.findContours(thresh, 1, 2)
-
+    thresh, bw_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(bw_img, cv2.RETR_TREE,
+                                           cv2.CHAIN_APPROX_SIMPLE)
     rectangles = []
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
-        if w < LOW_BOUND or h < LOW_BOUND or (x == 1 and y == 1):
+        if w < LOW_BOUND / 4 or h < LOW_BOUND / 4 or (x == 1 and y == 1):
             continue
-        rectangles.append(BoundingBox(x, y, w, h))
+        bbox = BoundingBox(x, y, w, h)
+        rectangles.append(bbox)
+
+    rectangles = sorted(rectangles, key=lambda x: x.area, reverse=True)[:10]
 
     combine_rectangles(rectangles)
     # filter out rectangles that are below the low bound
-    rectangles = filter(lambda x: x.meets_low_bound(LOW_BOUND), rectangles)
-    return img, rectangles
+    # rectangles = filter(lambda x: x.meets_low_bound(LOW_BOUND), rectangles)
+    # remove_text(rectangles, img)
+    return img, sorted(rectangles, key=lambda x: x.area, reverse=True)
 
 
 if __name__ == '__main__':
@@ -86,7 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--image_path', type=str, default='')
     parser.add_argument('--image_dir', type=str, default='')
     parser.add_argument('--output_dir', type=str, default='')
-    parser.add_argument('--low_bound', type=int, default=200)
+    parser.add_argument('--low_bound', type=int, default=250)
     parser.add_argument('--overlap', type=float, default=0.8)
     args = parser.parse_args()
 
@@ -119,3 +138,4 @@ if __name__ == '__main__':
                 outpath = os.path.join(args.output_dir,
                                        "%s_ex_%d.jpg" % (prefix, i))
                 cv2.imwrite(outpath, illustration)
+            break

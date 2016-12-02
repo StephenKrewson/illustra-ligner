@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <title>Force Image Clustering Visualization</title>
+    </head>
+    <body>
+
+      <svg width=800 height=800></svg>
+
+      <script>
+
+        var width = 800;
+        var height = 800;
+
+        d3.json("sample.json", function(data){
+
+          var image_dir = data['image_dir'];
+          var nodes = data['nodes'];
+          var links = data['links'];
+
+          var link_force = d3.forceLink(links)
+            .id(function(d){
+              return d.id;
+            })
+            .strength(function(d){
+              return 1 / d.distance;
+            })
+
+          var force = d3.forceSimulation(nodes)
+            .alphaDecay(0.05)
+            .force('charge', d3.forceManyBody().strength(-200))
+            .force('link', link_force)
+            .force('collide', d3.forceCollide(20))
+            .force('center', d3.forceCenter(400, 400))
+
+          var svg = d3.select("svg");
+
+          var nodes = svg
+            .selectAll("g")
+            .data(nodes)
+            .enter()
+              .append("g")
+              .attr("class", "node")
+              //.call(force.drag);
+
+          nodes.append("svg:image")
+            .attr("xlink:href", function(d){
+              return image_dir + "/" + d.id;
+            })
+            .attr("width", 50)
+            .attr("height", 50);
+
+          force.on("tick", function() {
+            nodes.attr("transform", function(d) {
+              return "translate(" + d.x + "," + d.y + ")";
+            });
+          });
+
+        })
+      </script>
+    </body>
+</html>
