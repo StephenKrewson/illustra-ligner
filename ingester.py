@@ -1,11 +1,11 @@
 import requests
 import os
 
-# download a list of identifier
+# download a list of identifiers
 base_url = "https://archive.org/advancedsearch.php?q="
 components = {
-    "q": "contributor:The+Library+of+Congress",
-    "rows": 5,
+    "q": "creator:peter parley",
+    "rows": 100,
     "page": 1,
     "output": "csv",
     "fl": "identifier"
@@ -14,13 +14,13 @@ components = {
 r = requests.get(base_url, params=components)
 identifiers = [ident.strip('"') for ident in r.text.split()[1:]]
 
-# make a directory to store the file
+# make a directory to store the files
 try:
     os.mkdir("ArchiveDownloads")
 except OSError:
     pass
 
-# switch to that director
+# # switch to that director
 os.chdir("ArchiveDownloads")
 
 # write identifiers to file
@@ -41,3 +41,15 @@ for fname in files:
         to_remove.append(fname[:-len("_bw.pdf")] + ".pdf")
 
 os.system("rm %s" % (" ".join(to_remove)))
+
+# make a directory to store the pages
+try:
+    os.mkdir("../ArchivePages")
+except OSError:
+    pass
+
+# now convert the pdfs to jpegs (use brew install poppler to get pdftoppm)
+files = os.listdir('.')
+for fname in files:
+    outname = '../ArchivePages/' + fname.strip('.pdf')
+    os.system('pdftoppm -jpeg %s %s' % (fname, outname))
