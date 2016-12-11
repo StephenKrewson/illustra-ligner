@@ -35,6 +35,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import json
 import os.path
 import re
 import sys
@@ -168,23 +169,33 @@ def run_inference_on_image(image):
     #   encoding of the image.
     # Runs the softmax tensor by feeding the image_data as input to the graph.
     softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-    feature_tensor = sess.graph.get_tensor_by_name('pool_3:0') #ADDED
+	
+	# This code is added to the TensorFlow module #############################
+    feature_tensor = sess.graph.get_tensor_by_name('pool_3:0')
     predictions = sess.run(softmax_tensor,
                            {'DecodeJpeg/contents:0': image_data})
     predictions = np.squeeze(predictions)
     feature_set = sess.run(feature_tensor,
-                        {'DecodeJpeg/contents:0': image_data}) #ADDED
-    feature_set = np.squeeze(feature_set) #ADDED
-    print(feature_set) #ADDED
-    np.save(('/mnt/d/stephen-krewson/Documents/illustra-ligner/tf-results/' + os.path.basename(FLAGS.image_file)), feature_set) #ADDED
-
+                        {'DecodeJpeg/contents:0': image_data})
+    feature_set = np.squeeze(feature_set)
+	# Save the feature_set to numpy arrays of the feature scores
+    np.save(('/mnt/d/stephen-krewson/Documents/illustra-ligner/image-nets/test-target/' + os.path.basename(FLAGS.image_file)), feature_set)
+	
     # Creates node ID --> English string lookup.
     node_lookup = NodeLookup()
 
     top_k = predictions.argsort()[-FLAGS.num_top_predictions:][::-1]
+    synset_map = {}
+    synset_map[image] = str(node_lookup.id_to_string(top_k[0]))
+	
     for node_id in top_k:
-      human_string = node_lookup.id_to_string(node_id)
-      score = predictions[node_id]
+	    human_string = node_lookup.id_to_string(node_id)
+	    score = predictions[node_id]
+	    print(human_string,score)
+	    #synset_map[image] = (human_string,score)
+
+    with open("/mnt/d/stephen-krewson/Documents/illustra-ligner/image-nets/mappings/filepath-to-synset.json", "a") as out:
+        json.dump(synset_map, out)
 
 
 def maybe_download_and_extract():
