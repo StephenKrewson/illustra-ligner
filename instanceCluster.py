@@ -1,19 +1,15 @@
 # Inspiration from
 # http://www.pyimagesearch.com/2014/07/14/3-ways-compare-histograms-using-opencv-python/
 # http://study.marearts.com/2014/11/opencv-emdearth-mover-distance-example.html
-
-# Ideas 1. have a "set book", and compare images to this set (nearest-nieghbor)
-# 1b. Find a better way to represent the results
-# 2. Turn the histogram into a channel
 import io
 import os
 import glob
 import numpy as np
 import cv2
-from emd import emd
+import matplotlib.pyplot as plt
 import argparse
-
-THRESHOLD = .90 # TBD later
+from emd import emd
+from correctGroups import groupDict
 
 def make2DHist(img):
     i = cv2.imread(img)
@@ -32,34 +28,36 @@ def make2DHist(img):
 
 
 # imgA and imgB are paths to files
-def compareTwoHist(img1, img2, method, opt_args=None):
+def compareTwoHist(img, histB, method, opt_args=None):
 
-     imgA = cv2.imread(img1)
-     imgB = cv2.imread(img2)
+     histA = make2DHist(img)
 
-     # Converting from BGR to HSV for color comparison
-     cv2.cvtColor(imgA, cv2.COLOR_BGR2HSV)
-     cv2.cvtColor(imgB, cv2.COLOR_BGR2HSV)
-
-     # Creating a 2D Histogram
-     # hue and saturation
-     channels = [0,1]
-     histSize = [180, 256]
-     ranges = [0,180, 0, 256]
-
-     histA = cv2.calcHist([imgA],channels,None,histSize, ranges)
-     histB = cv2.calcHist([imgB],channels,None,histSize, ranges)
-
-     # normalizing
-     histA = cv2.normalize(histA,0, 1, cv2.NORM_MINMAX).flatten()
-     histB = cv2.normalize(histB,0, 1, cv2.NORM_MINMAX).flatten()
+     # compute signal for the two histograms
+     numrows = histA.shape[0]
 
      # compare similarity using earth mover distance or opencv compareHist methods
-     # pip install -e git+https://github.com/garydoranjr/pyemd.git#egg=pyemd
-     delta = method([histA], [histB] ,opt_args)
-     return img1 + ' ' + img2 + ' similarity: ' + str(delta)
+     # pip install "git+https://github.com/wmayner/pyemd@develop#egg=pyemd"
+     delta = method(histA, histB, opt_args)
+
+     return delta
+
+def confusionMatrix(predictions, correct):
+    m = len(predictions)
+    confusion = np.zeros((m,m))
+    g = 0
+    total = 0
+    for group in predictions:
+        for image in group:
+            if correct[image] != -1: # no class assignment
+                confusion[correct[image], g] += 1
+                total += 1
+        g += 1
+    print total
+    print np.trace(confusion) / total
+    print confusion
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--images", required = True,
 	   help = "Path to the directory of images")
@@ -70,7 +68,7 @@ if __name__ == "__main__":
     for f in glob.glob(args.images + "/*.jpg"):
         image_paths.append(f)
 
-    f = open("pairwise_similarity.txt", 'w')
+    f = open("groups.txt", 'w')
 
     # find a prefix to determine which book to use
     prefix = image_paths[0].split('/', 2)
@@ -78,16 +76,29 @@ if __name__ == "__main__":
 
     # make k classes from one book
     histograms = []
+    grouped_images = [[]]
     for filepath in image_paths:
         if prefix in filepath:
             histograms.append(make2DHist(filepath))
+            grouped_images.append([filepath])
 
     for i in range(len(image_paths)):
-        for j in range(i,len(histograms)):
+        temp = [] # storage for comparison
+        for j in range(len(histograms)):
             # compare histogram to the current image histograms
-            if compareTwoHist(image_paths[i], histograms[j], emd) > THRESHOLD:
-                print image_paths[i] + 'class ' + str(j)
-                exit(0)
+             temp.append(compareTwoHist(image_paths[i], histograms[j], cv2.compareHist, cv2.HISTCMP_HELLINGER))
+        g = np.argmin(temp)
+        grouped_images[g].append(image_paths[i])
+            # else make new class (not yet implemented)
 
-            # else make new class
-         # f.write(compareTwoHist(image_paths[i],image_paths[j],cv2.compareHist, cv2.HISTCMP_CORREL )+ "\n")
+    # confusion matrices
+    confusionMatrix(grouped_images, groupDict)
+
+    # write results to file
+    i = 0
+    for group in grouped_images:
+        i += 1
+        f.write('Group ' + str(i) + '\n')
+        for image in group:
+            f.write(image + "\n")
+        f.write("\n")
