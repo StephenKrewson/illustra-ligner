@@ -16,10 +16,8 @@
 
         d3.json("sample.json", function(data){
 
-          console.log(data);
           var image_dir = data['image_dir'];
           var nodes = data['nodes'];
-          console.log(nodes);
           var links = data['links'];
 
           var link_force = d3.forceLink(links)
