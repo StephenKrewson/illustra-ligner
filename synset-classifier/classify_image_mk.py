@@ -194,9 +194,8 @@ def run_inference_on_image(image):
 	#    print(human_string,score)
 		
     with open(os.getcwd() + '/mappings/filepath-to-synset.csv', 'a') as csvfile:
-        writer = csv.writer(csvfile, delimiter=' ')
-        writer.writerow([image] + [human_string])
-
+        writer = csv.writer(csvfile)
+        writer.writerow([image,re.sub(r"\s+", '-', human_string)])
 
 def maybe_download_and_extract():
   """Download and extract model tar file."""
