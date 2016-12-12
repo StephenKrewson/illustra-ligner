@@ -1,7 +1,7 @@
 from sklearn.decomposition import NMF
 import numpy, glob, json
 
-files = glob.glob("../extracted-sims/*.npy")
+files = glob.glob("./similarity-vectors/*.npy")
 vectors = []
 
 # loop over the numpy vectors
@@ -31,7 +31,7 @@ reduced_dimensionality = {}
 for c, i in enumerate(matrix):
   reduced_dimensionality[c] = [j for j in i]
 
-with open("reduced_dimensionality.json", "w") as out:
+with open("./mappings/ID-to-embedding.json", "w") as out:
   json.dump(reduced_dimensionality, out)
 
 # matrix contains one member for each observation
