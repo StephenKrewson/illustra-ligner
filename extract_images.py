@@ -93,7 +93,6 @@ def bounding_boxes_for_image(image_path):
 
     rectangles = sorted(rectangles, key=lambda x: x.area, reverse=True)[:10]
 
-    combine_rectangles(rectangles)
     # filter out rectangles that are below the low bound
     # rectangles = filter(lambda x: x.meets_low_bound(LOW_BOUND), rectangles)
     # remove_text(rectangles, img)

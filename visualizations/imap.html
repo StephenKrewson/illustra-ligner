@@ -7,17 +7,19 @@
     </head>
     <body>
 
-      <svg width=800 height=800></svg>
+      <svg width=1600 height=1600></svg>
 
       <script>
 
-        var width = 800;
-        var height = 800;
+        var width = 1600;
+        var height = 1600;
 
         d3.json("sample.json", function(data){
 
+          console.log(data);
           var image_dir = data['image_dir'];
           var nodes = data['nodes'];
+          console.log(nodes);
           var links = data['links'];
 
           var link_force = d3.forceLink(links)
@@ -30,10 +32,10 @@
 
           var force = d3.forceSimulation(nodes)
             .alphaDecay(0.05)
-            .force('charge', d3.forceManyBody().strength(-200))
+            .force('charge', d3.forceManyBody().strength(-10000))
             .force('link', link_force)
             .force('collide', d3.forceCollide(20))
-            .force('center', d3.forceCenter(400, 400))
+            .force('center', d3.forceCenter(800, 800))
 
           var svg = d3.select("svg");
 
