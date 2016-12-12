@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import csv
 import json
 import numpy as np
 import os
@@ -13,6 +14,12 @@ with open('ID-to-embedding.json', 'r') as fp:
 	
 	# Convert key IDs to ints; keep them in order
 	matrix = OrderedDict({int(k):v for k,v in data.items()})
+	
+	# let's also make a csv thing for using MDS in matlab
+	with open('ID-to-embedding.csv', 'w') as csv_file:
+		writer = csv.writer(csv_file)
+		for key, value in matrix.items():
+			writer.writerow([value[0],value[1]])
 	
 	# make a numpy distance matrix
 	x = np.array([v[0] for v in matrix.values()]).astype('float')
@@ -38,25 +45,4 @@ with open('ID-to-embedding.json', 'r') as fp:
 			links.append({'source': i1, 'target': i2, 'distance': distances[i-1,j-1]})
 	
 	json_dict['links'] = links
-	print(json_dict)
 	json.dump(json_dict, open('ID-to-distances.json', 'w'))
-
-'''
-def sim(i1, i2):
-    if i1 == i2:
-        return 0
-    elif i1[-6] == i2[-6]:
-        return random()
-    else:
-        return 100
-
-links = []
-for i, i1 in enumerate(images):
-    for j, i2 in enumerate(images):
-        if i == j:
-            break
-        links.append({'source': i1, 'target': i2, 'distance': sim(i1, i2)})
-
-json_dict['links'] = links
-json.dump(json_dict, open('sample.json', 'w'))
-'''
