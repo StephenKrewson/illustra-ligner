@@ -18,3 +18,6 @@ text(M(:,1),M(:,2),L);
 title('Distance Matrix for 2-D Embedding of Newtonian System Images');
 print('telescope-distances.png','-dpng');
 
+% Get the top 10 wordNet clusters
+top = sortrows(tabulate(idx),-2);
+label(top(1:10,1))
