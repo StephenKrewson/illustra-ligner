@@ -10,9 +10,11 @@ disp(['MLE estimate of intrinsic dimensionality: ' num2str(no_dims)]);
 % laplacian eigenmaps!!!!!!!! (it preserves all data points)
 [mappedX, mapping] = compute_mapping(matrix, 'PCA', no_dims);	
 figure, scatter3(mappedX(:,1), mappedX(:,2), mappedX(:,3)); title('Result of PCA (3 components)');
+print('pca.png','-dpng');
 
 [mappedX, mapping] = compute_mapping(matrix, 'Laplacian', no_dims, 7);	
 figure, scatter3(mappedX(:,1), mappedX(:,2), mappedX(:,3)); title('Result of Laplacian Eigenmaps'); drawnow
+print('laplacian.png','-dpng');
 
 % Constrain to first three principal components, get the pointwise
 % distances and then do agglomerative single link clustering (cf. with
@@ -22,11 +24,13 @@ eucD = pdist2(X,X);
 clustTreeEuc = linkage(eucD,'average');
 cophenet(clustTreeEuc,eucD)
 
+figure;
 [h,nodes] = dendrogram(clustTreeEuc,0);
 h_gca = gca;
 h_gca.TickDir = 'out';
 h_gca.TickLength = [.002 0];
 h_gca.XTickLabel = [];
+print('dendrogram.png','-dpng');
 
 % Get the images; remember to offset by 2 to account for dir symlinks
 % we also want to make them all the same size
@@ -40,15 +44,20 @@ for i = 1:no_dims
     clust = find(hidx==i);
     filenames = {imagelist(clust+2).name};
     absopaths = strcat(location,filenames);
-    figure, imdisp(absopaths); title(num2str(i));
+    print_string = sprintf('cluster-%d.png', i);
+    figure, imdisp(absopaths);
+    print(print_string,'-dpng');
 end
 
 % 2) create 3-D scatterplot of the laplacian eigenmap clusters; use two
 % loops since otherwise the figure handles would get crazy
+figure
 for i = 1:no_dims
     clust = find(hidx==i);
-    scatter3(X(clust,1),X(clust,2),X(clust,3));title('Clusters');
+    scatter3(X(clust,1),X(clust,2),X(clust,3));
     hold on
 end
+
 hold off
 grid on
+print('scatter.png','-dpng');
