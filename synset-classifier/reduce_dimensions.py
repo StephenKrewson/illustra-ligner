@@ -1,5 +1,8 @@
+
 from sklearn.decomposition import NMF
 import numpy, glob, json
+import scipy.io
+import sys
 
 files = glob.glob("./similarity-vectors/*.npy")
 vectors = []
@@ -18,24 +21,28 @@ for c, i in enumerate(files):
 # build up the master matrix on which we'll perform dimension reduction
 X = numpy.array(vectors)
 
-# build the nmf model (non-negative matrix factorization)
-model = NMF(n_components=2, random_state=1)
-model.fit(X)
+# save to matlab array and quit early
+scipy.io.savemat('inception.mat',{'matrix': X})
+sys.exit()
 
-# get a matrix with one member for each vector we added to X
-matrix = model.fit_transform(X)
-centered_matrix = matrix / numpy.sum(matrix, axis=1, keepdims=True)  
+# # build the nmf model (non-negative matrix factorization)
+# model = NMF(n_components=2, random_state=1)
+# model.fit(X)
 
-# store the reduced dimensionality of each observation
-reduced_dimensionality = {}
-for c, i in enumerate(matrix):
-  reduced_dimensionality[c] = [j for j in i]
+# # get a matrix with one member for each vector we added to X
+# matrix = model.fit_transform(X)
+# centered_matrix = matrix / numpy.sum(matrix, axis=1, keepdims=True)  
 
-with open("./mappings/ID-to-embedding.json", "w") as out:
-  json.dump(reduced_dimensionality, out)
+# # store the reduced dimensionality of each observation
+# reduced_dimensionality = {}
+# for c, i in enumerate(matrix):
+  # reduced_dimensionality[c] = [j for j in i]
 
-# matrix contains one member for each observation
-print(len(matrix))
+# with open("./mappings/ID-to-embedding.json", "w") as out:
+  # json.dump(reduced_dimensionality, out)
 
-# model.components_ contains one member for each topic
-print(model.components_)
+# # matrix contains one member for each observation
+# print(len(matrix))
+
+# # model.components_ contains one member for each topic
+# print(model.components_)
