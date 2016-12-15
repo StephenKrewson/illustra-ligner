@@ -11,7 +11,7 @@ def convert_name(fpath):
 	img = re.sub(r'extracted-sims','extracted-images',img)
 	return img
 
-with open('nearest_neighbors.json','r') as fp1, open('data_mapping.json','r') as fp2:
+with open('ID-to-neighbors.json','r') as fp1, open('ID-to-filepath.json','r') as fp2:
 	
 	# Load the JSON that maps filepaths to numbers and the nearest-neighbor list
 	data = json.load(fp1)
@@ -32,7 +32,7 @@ with open('nearest_neighbors.json','r') as fp1, open('data_mapping.json','r') as
 		# We need to convert from the NP array filename to the plain old image
 		path = mapping[str(nb)]
 		img = re.sub(r'.npy','',path)
-		img = re.sub(r'extracted-sims','extracted-images',img)
+		img = re.sub(r'extracted-sims','../img/extracted',img)
 		
 		# Read in the image
 		image = mpimg.imread(img)
