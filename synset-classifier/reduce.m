@@ -29,10 +29,11 @@ h_gca.TickLength = [.002 0];
 h_gca.XTickLabel = [];
 
 
-
-hidx = cluster(clustTreeEuc,'criterion','distance','cutoff',0.2);
-for i = 1:7
+% https://www.mathworks.com/help/stats/examples/cluster-analysis.html
+hidx = cluster(clustTreeEuc,'criterion','distance','cutoff',0.19);
+for i = 1:13
     clust = find(hidx==i);
+    clust
     scatter3(X(clust,1),X(clust,2),X(clust,3));
     hold on
 end
