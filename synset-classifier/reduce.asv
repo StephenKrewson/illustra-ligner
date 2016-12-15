@@ -28,16 +28,44 @@ h_gca.TickDir = 'out';
 h_gca.TickLength = [.002 0];
 h_gca.XTickLabel = [];
 
+% Get the images; remember to offset by 2 to account for dir symlinks
+% we also want to make them all the same size
+imagelist = dir('../img/resized/');
+for i = 3:length(imagelist)
+    imagelist(i).name
+end
 
-
-hidx = cluster(clustTreeEuc,'criterion','distance','cutoff',.006);
-for i = 1:7
+% https://www.mathworks.com/help/stats/examples/cluster-analysis.html
+hidx = cluster(clustTreeEuc,'criterion','distance','cutoff',0.19);
+for i = 1:13
     clust = find(hidx==i);
-    plot3(X(clust,1),X(clust,2),X(clust,3));
+    %clust'
+    %length(clust)
+    filenames = {imagelist(clust+2).name};
+    absopaths = strcat('../img/extracted/',filenames);
+    I = imread(absopaths);
+    R = imresize(I,[150 100]);
+    
+    %montage(strcat('../img/extracted/',filenames))
+    for j = 1:length(clust)
+        %clust(j)
+        image = imagelist(clust(j) + 2).name;
+        image
+    end
+    
+    scatter3(X(clust,1),X(clust,2),X(clust,3));
     hold on
 end
 hold off
 grid on
+
+
+
+% TODO: show charts from different van der Mathods
+% go from json mapping to .mat file with string cell array.
+% for each clust, generate 
+% think about why kernel methods were so bad; some literature on why
+% % laplacian eigenmaps GOOD for images; see uchicago dude
 
 %[mappedX, mapping] = compute_mapping(matrix, 'DiffusionMaps', no_dims);	
 %figure, scatter(mappedX(:,1), mappedX(:,2)); title('This is the testing one'); drawnow
