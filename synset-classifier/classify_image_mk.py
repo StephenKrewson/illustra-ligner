@@ -179,8 +179,10 @@ def run_inference_on_image(image):
     feature_set = sess.run(feature_tensor,
                         {'DecodeJpeg/contents:0': image_data})
     feature_set = np.squeeze(feature_set)
+	
 	# Save the feature_set to numpy arrays of the feature scores
-    np.save((os.getcwd() + '/test-target/' + os.path.basename(FLAGS.image_file)), feature_set)
+	# OSError if this directory doesn't yet exist
+    np.save((os.getcwd() + '/parley-vectors/' + os.path.basename(FLAGS.image_file)), feature_set)
 	
     # Creates node ID --> English string lookup.
     node_lookup = NodeLookup()
@@ -192,8 +194,9 @@ def run_inference_on_image(image):
 	#    human_string = node_lookup.id_to_string(node_id)
 	#    score = predictions[node_id]
 	#    print(human_string,score)
-		
-    with open(os.getcwd() + '/mappings/filepath-to-synset.csv', 'a') as csvfile:
+	
+	# after an image has been assigned a vector, map its name to a human-readable synset
+    with open(os.getcwd() + '/mappings/parley-to-synset.csv', 'a') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([image,re.sub(r"\s+", '-', human_string)])
 
