@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 # path to the numpy arrays
-files = glob.glob("../extracted-sims/*.npy")
+files = glob.glob("../parley-vectors/*.npy")
 
 # number of dimensions in each vector
 dims = 2048
@@ -34,16 +34,16 @@ for c, i in enumerate(files):
   t.add_item(c, vector)
 
 # store the mapping from index position to image/vector path
-with open("data_mapping.json", "w") as out:
-  json.dump(data_mapping, out)
+with open("data_mapping.json", "w") as outfile:
+  json.dump(data_mapping, outfile)
 
 # build an index with 10 trees and save the index
-t.build(10)
-t.save('telescope.ann')
+t.build(100)
+t.save('parley.ann')
 
 # load the index
 u = AnnoyIndex(dims)
-u.load('telescope.ann')
+u.load('parley.ann')
 
 # load the data mapping
 with open("data_mapping.json") as f:
