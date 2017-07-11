@@ -17,6 +17,7 @@ from imutils import build_montages
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
 import numpy as np
+import random
 from sklearn.neighbors import NearestNeighbors
 import sys
 
@@ -26,6 +27,7 @@ if len(sys.argv) != 3:
 	sys.exit("USAGE: python make_image_grid.py <VECTORS_DIR> <NUM_NEIGHBORS>")
 
 try:
+	# just stick with 39 + original = 40 for nice grid
 	K = int(sys.argv[2])
 except ValueError:
 	sys.exit("<NUM_NEIGHBORS> must be a positive integer.")
@@ -51,13 +53,30 @@ for f in glob.iglob(sys.argv[1] + "/*npy"):
 X = np.stack(arrays, axis=0)
 
 # from tutorial: http://scikit-learn.org/stable/modules/neighbors.html
-#nbrs = NearestNeighbors(n_neighbors=int(sys.argv[2])).fit(X)
-#distances, indices = nbrs.kneighbors(X)
-
-print('\n'.join(paths))
+nbrs = NearestNeighbors(n_neighbors=int(sys.argv[2])).fit(X)
+distances, indices = nbrs.kneighbors(X)
 
 # pretty fast actually!
+#print('\n'.join(paths))
 #print(distances.shape)
+
+# pick a random row from the matrix (TODO: parameterize this?)
+idx = random.randint(0, X.shape[0])
+
+# now loop over the neighbors of this image and open them in OpenCV
+images = []
+for nbr in indices[idx]:
+	images.append(cv2.imread(paths[nbr]))
+
+# construct a montage: first tuple is (width, height) then (columns, rows)
+montages = build_montages(images, (128, 180), (10, 4))
+
+for montage in montages:
+	cv2.imshow("Montage", montage)
+	cv2.waitKey(0)
+
+# http://www.pyimagesearch.com/2017/05/29/montages-with-opencv/
+
 
 # https://stackoverflow.com/questions/16628514/is-there-a-good-solution-for-space-efficiently-showing-multiple-images-in-pylab
 # im = np.arange(100)
