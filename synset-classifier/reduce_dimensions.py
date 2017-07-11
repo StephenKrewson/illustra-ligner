@@ -1,10 +1,13 @@
 
-from sklearn.decomposition import NMF
+#from sklearn.decomposition import NMF
 import numpy, glob, json
 import scipy.io
 import sys
 
-files = glob.glob("./similarity-vectors/*.npy")
+
+# basically just using this to turn numpy into matlab for clustering
+# idea: collages for each of intrinsic dimensions
+files = glob.glob("./parley-vectors/*.npy")
 vectors = []
 
 # loop over the numpy vectors
@@ -22,7 +25,7 @@ for c, i in enumerate(files):
 X = numpy.array(vectors)
 
 # save to matlab array and quit early
-scipy.io.savemat('inception.mat',{'matrix': X})
+scipy.io.savemat('parley-inception.mat',{'matrix': X})
 sys.exit()
 
 # # build the nmf model (non-negative matrix factorization)

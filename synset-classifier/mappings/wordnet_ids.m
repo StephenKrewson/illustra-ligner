@@ -1,6 +1,9 @@
 M = csvread('ID-to-embedding.csv');
 [L,delimiter] = importdata('filepath-to-synset.csv');
 
+
+% https://gist.github.com/maraoz/388eddec39d60c6d52d4
+
 % Truncate data since we are missing a few WordNet labels
 M = M(1:size(L,1),:);
 
