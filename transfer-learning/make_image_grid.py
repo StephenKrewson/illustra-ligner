@@ -49,7 +49,7 @@ for f in glob.iglob(sys.argv[1] + "/*npy"):
 X = np.stack(arrays, axis=0)
 
 # from tutorial: http://scikit-learn.org/stable/modules/neighbors.html
-nbrs = NearestNeighbors(n_neighbors=int(sys.argv[2])).fit(X)
+nbrs = NearestNeighbors(n_neighbors=K).fit(X)
 distances, indices = nbrs.kneighbors(X)
 
 # pretty fast actually!
