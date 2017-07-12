@@ -62,10 +62,14 @@ distances, indices = nbrs.kneighbors(X)
 
 # pick a random row from the matrix (TODO: parameterize this?)
 idx = random.randint(0, X.shape[0])
+print("idx =", idx)
 
-# now loop over the neighbors of this image and open them in OpenCV
+# loop over the neighbors of this image and open them in OpenCV
+# we will send these to montage 
 images = []
-for nbr in indices[idx]:
+nearest_nbrs = [y for (x,y) in sorted(zip(distances[idx],indices[idx]), key=lambda pair: pair[0])]
+
+for nbr in nearest_nbrs:
 	images.append(cv2.imread(paths[nbr]))
 
 # construct a montage: first tuple is (width, height) then (columns, rows)
