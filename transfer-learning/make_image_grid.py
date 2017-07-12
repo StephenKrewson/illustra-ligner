@@ -22,11 +22,11 @@ from sklearn.neighbors import NearestNeighbors
 import sys
 
 
-# ensure user is passing in a directory of numpy arrays and a K value
+# ensure user is passing in a directory of numpy arrays
 if len(sys.argv) != 2:
 	sys.exit("USAGE: python make_image_grid.py <VECTORS_DIR>")
 
-# number of neighbors includes the image itself
+# number of neighbors includes the image itself (4 x 10 grid works)
 K = 40
 
 # first load the arrays out of their files before shaping
@@ -52,10 +52,6 @@ X = np.stack(arrays, axis=0)
 nbrs = NearestNeighbors(n_neighbors=K).fit(X)
 distances, indices = nbrs.kneighbors(X)
 
-# pretty fast actually!
-#print('\n'.join(paths))
-#print(distances.shape)
-
 # pick a random row from the matrix (TODO: parameterize this?)
 idx = random.randint(0, X.shape[0])
 print("idx =", idx)
@@ -68,28 +64,9 @@ nearest_nbrs = [y for (x,y) in sorted(zip(distances[idx],indices[idx]), key=lamb
 for nbr in nearest_nbrs:
 	images.append(cv2.imread(paths[nbr]))
 
-# construct a montage: first tuple is (width, height) then (columns, rows)
+# construct montage: first tuple (width, height) then (columns, rows)
+# http://www.pyimagesearch.com/2017/05/29/montages-with-opencv/
 montages = build_montages(images, (128, 180), (10, 4))
-
 for montage in montages:
 	cv2.imshow("Montage", montage)
 	cv2.waitKey(0)
-
-# http://www.pyimagesearch.com/2017/05/29/montages-with-opencv/
-
-
-# https://stackoverflow.com/questions/16628514/is-there-a-good-solution-for-space-efficiently-showing-multiple-images-in-pylab
-# im = np.arange(100)
-# im.shape = 10, 10
-# images = [im for i in range(100)]
-
-# fig = plt.figure(1, (4., 4.))
-# grid = ImageGrid(fig, 111,
-#                  nrows_ncols=(10, 10),
-#                  axes_pad=0,
-# )
-
-# for i in range(100):
-#     grid[i].imshow(images[i], cmap=plt.get_cmap('Greys_r'))  # The AxesGrid object work as a list of axes.
-#     grid[i].axis('off')
-# plt.show(block=True)
