@@ -63,3 +63,14 @@ http://stackoverflow.com/questions/34809795/tensorflow-return-similar-images
 I ran the classify_image_mk.py script on all 28,000 images by using:
 
 find <imagedirectory> -name '*.jpg' | while read file; do python classify_image_mk.py --image_file $file; done
+
+
+Bibliography
+============
+http://people.ece.cornell.edu/johnson/
+https://services.math.duke.edu/~ingrid/publications/paper_Bridges.pdf
+http://colourlex.com/project/computational-analysis-of-paintings/
+
+https://arxiv.org/abs/1310.1531
+https://www.lib.umich.edu/blogs/library-tech-talk/beyond-google-books-getting-locally-digitized-material-hathitrust
+http://ebba.english.ucsb.edu/
