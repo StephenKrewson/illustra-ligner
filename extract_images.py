@@ -112,6 +112,12 @@ def bounding_boxes_for_image(image_path):
     # data, the first bounding box is the image itself AND there is usually
     # only one image per page (this decent assumption for Parley books)
     # need to return it as array, however, since rest of code expects array
+
+    # ensure there's no index error for this hack
+    if len(rectangles) < 2:
+        return img, rectangles
+
+    # old return value commented out
     return img, [rectangles[1]] #sorted(rectangles, key=lambda x: x.area, reverse=True)
 
 
