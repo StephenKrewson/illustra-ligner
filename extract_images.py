@@ -1,8 +1,12 @@
+#!/usr/bin/python
+
+
 import argparse
 import cv2
 import numpy as np
 import os
 from random import shuffle
+
 
 # bounds for side length in pixels of image
 LOW_BOUND = 100
@@ -80,23 +84,35 @@ def combine_rectangles(rectangles):
 
 def bounding_boxes_for_image(image_path):
     img = cv2.imread(image_path, 0)
+
     thresh, bw_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
-    contours, hierarchy = cv2.findContours(bw_img, cv2.RETR_TREE,
+    
+    # See: https://stackoverflow.com/questions/25504964/opencv-python-valueerror-too-many-values-to-unpack
+    hierarchy, contours, _ = cv2.findContours(bw_img, cv2.RETR_TREE,
                                            cv2.CHAIN_APPROX_SIMPLE)
+
     rectangles = []
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
+        # check if (x,y) is top corner--ignore if so (bbox is just img itself)
         if w < LOW_BOUND / 4 or h < LOW_BOUND / 4 or (x == 1 and y == 1):
             continue
         bbox = BoundingBox(x, y, w, h)
         rectangles.append(bbox)
 
+    # top 10 biggest bounding boxes
     rectangles = sorted(rectangles, key=lambda x: x.area, reverse=True)[:10]
 
     # filter out rectangles that are below the low bound
-    # rectangles = filter(lambda x: x.meets_low_bound(LOW_BOUND), rectangles)
+    # filter out rectangles that are simply image itself
+    #rectangles = filter(lambda x: x.meets_low_bound(LOW_BOUND), rectangles)
+
     # remove_text(rectangles, img)
-    return img, sorted(rectangles, key=lambda x: x.area, reverse=True)
+    # this is a complete hack and relies on fact that for initial HathiTrust
+    # data, the first bounding box is the image itself AND there is usually
+    # only one image per page (this decent assumption for Parley books)
+    # need to return it as array, however, since rest of code expects array
+    return img, [rectangles[1]] #sorted(rectangles, key=lambda x: x.area, reverse=True)
 
 
 if __name__ == '__main__':
@@ -128,13 +144,18 @@ if __name__ == '__main__':
 
     for prefix, image_path in zip(prefixes, image_paths):
         img, bboxes = bounding_boxes_for_image(image_path)
+
+        print bboxes
+
         for i, large in enumerate(bboxes):
             illustration = large.slice_image(img)
+
             if not args.output_dir:
                 cv2.imshow("illustration %d" % (i), illustration)
                 cv2.waitKey(0)
             else:
                 outpath = os.path.join(args.output_dir,
                                        "%s_ex_%d.jpg" % (prefix, i))
+                print outpath
                 cv2.imwrite(outpath, illustration)
-            break
+            #break # ok problem was here: breaking too early need to discard image itself
